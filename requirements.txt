@@ -1,0 +1,7 @@
+aiohttp
+SQLAlchemy
+alembic
+ruamel.yaml
+commonmark
+python-magic
+mautrix
