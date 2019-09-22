@@ -1,6 +1,6 @@
 import setuptools
 import glob
-import mautrix_hangouts
+import mautrix_twilio
 
 try:
     long_desc = open("README.md").read()
