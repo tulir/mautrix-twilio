@@ -32,12 +32,21 @@ class TwilioEventType(SerializableEnum):
 
 
 class TwilioMessageStatus(SerializableEnum):
+    # Statuses only returned by the send endpoint
+    ACCEPTED = "accepted"
+    QUEUED = "queued"
+    SENDING = "sending"
+
+    # Statuses that can come from the status webhook
     SENT = "sent"
-    DELIVERED = "delivered"
-    READ = "read"
-    RECEIVED = "received"
-    UNDELIVERED = "undelivered"
     FAILED = "failed"
+    DELIVERED = "delivered"
+    UNDELIVERED = "undelivered"
+    READ = "read"
+
+    # Statuses only for received messages
+    RECEIVING = "receiving"
+    RECEIVED = "received"
 
 
 @dataclass
