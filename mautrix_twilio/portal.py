@@ -130,7 +130,8 @@ class Portal(BasePortal):
         return self.mxid
 
     async def handle_twilio_message(self, message: TwilioMessageEvent) -> None:
-        await self.create_matrix_room()
+        if not await self.create_matrix_room():
+            return
         mxid = None
 
         if message.media:

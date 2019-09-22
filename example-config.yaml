@@ -50,11 +50,11 @@ appservice:
 # Bridge config
 bridge:
     # Localpart template of MXIDs for remote users.
-    # {userid} is replaced with the phone number of the user (international format without +).
+    # {userid} is replaced with the phone number of the user (plain/E.164 international format).
     username_template: "twilio_whatsapp_{userid}"
     # Displayname template for remote users.
-    # {displayname} is replaced with the phone number of the user (international format without +).
-    displayname_template: "+{displayname} (WhatsApp)"
+    # {displayname} is replaced with the phone number of the user (human-readable international format).
+    displayname_template: "{displayname} (WhatsApp)"
 
     # The prefix for commands. Only required in non-management rooms.
     command_prefix: "!tw"

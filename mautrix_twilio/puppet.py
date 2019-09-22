@@ -26,6 +26,11 @@ from .twilio import TwilioUserID
 if TYPE_CHECKING:
     from .context import Context
 
+try:
+    import phonenumbers
+except ImportError:
+    phonenumbers = None
+
 config: Config
 
 
@@ -38,6 +43,7 @@ class Puppet(BasePuppet):
     by_twid: Dict[TwilioUserID, 'Puppet'] = {}
 
     twid: TwilioUserID
+    _formatted_number: Optional[str]
 
     _db_instance: Optional[DBPuppet]
 
@@ -46,6 +52,7 @@ class Puppet(BasePuppet):
         super().__init__()
         self.twid = twid
         self.is_registered = is_registered
+        self._formatted_number = None
         self._db_instance = db_instance
         self.intent = self.az.intent.user(self.mxid)
         self.log = self.log.getChild(self.twid)
@@ -56,12 +63,20 @@ class Puppet(BasePuppet):
         return self.twid_template.parse(self.twid)
 
     @property
+    def formatted_phone_number(self) -> str:
+        if not self._formatted_number:
+            parsed = phonenumbers.parse(f"+{self.phone_number}")
+            fmt = phonenumbers.PhoneNumberFormat.INTERNATIONAL
+            self._formatted_number = phonenumbers.format_number(parsed, fmt)
+        return self._formatted_number
+
+    @property
     def mxid(self) -> UserID:
         return UserID(self.mxid_template.format_full(str(self.phone_number)))
 
     @property
     def displayname(self) -> str:
-        return self.displayname_template.format_full(str(self.phone_number))
+        return self.displayname_template.format_full(self.formatted_phone_number)
 
     @property
     def db_instance(self) -> DBPuppet:

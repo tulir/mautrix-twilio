@@ -30,6 +30,9 @@ setuptools.setup(
         "SQLAlchemy>=1.2,<2",
         "alembic>=1,<2",
     ],
+    extras_require={
+        "phonenumbers": ["phonenumbers>=8,<9"],
+    },
 
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",

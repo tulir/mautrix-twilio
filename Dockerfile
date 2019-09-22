@@ -25,7 +25,7 @@ RUN apk add --no-cache  \
 
 COPY . /opt/mautrix-twilio
 WORKDIR /opt/mautrix-twilio
-RUN pip3 install .
+RUN pip3 install .[phonenumbers]
 
 VOLUME /data
 
