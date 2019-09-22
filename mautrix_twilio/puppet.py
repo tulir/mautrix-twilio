@@ -82,7 +82,6 @@ class Puppet(BasePuppet):
 
     @classmethod
     def get_by_twid(cls, twid: TwilioUserID, create: bool = True) -> Optional['Puppet']:
-        print("GET BY TWID", twid)
         try:
             return cls.by_twid[twid]
         except KeyError:
@@ -101,7 +100,6 @@ class Puppet(BasePuppet):
 
     @classmethod
     def get_by_mxid(cls, mxid: UserID, create: bool = True) -> Optional['Puppet']:
-        print("GET BY MXID", mxid)
         twid = cls.get_twid_from_mxid(mxid)
         if twid:
             return cls.get_by_twid(twid, create)
