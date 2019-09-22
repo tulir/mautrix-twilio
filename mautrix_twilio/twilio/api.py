@@ -41,7 +41,6 @@ class TwilioClient:
         data = {
             "From": self.sender_id,
             "To": receiver,
-            "Body": body,
         }
         if body:
             data["Body"] = body

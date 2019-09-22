@@ -37,6 +37,7 @@ class TwilioMessageStatus(SerializableEnum):
     READ = "read"
     RECEIVED = "received"
     UNDELIVERED = "undelivered"
+    FAILED = "failed"
 
 
 @dataclass

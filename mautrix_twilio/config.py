@@ -25,6 +25,8 @@ class Config(BaseBridgeConfig):
 
         copy, copy_dict = helper.copy, helper.copy_dict
 
+        copy("homeserver.public_address")
+
         copy("appservice.community_id")
 
         copy("bridge.username_template")

@@ -1,7 +1,9 @@
 # Homeserver details
 homeserver:
     # The address that this appservice can use to connect to the homeserver.
-    address: https://matrix.example.com
+    address: http://localhost:8008
+    # The address that Twilio can use to download media from the homeserver.
+    public_address: https://matrix.example.com
     # The domain of the homeserver (for MXIDs, etc).
     domain: example.com
     # Whether or not to verify the SSL certificate of the homeserver.

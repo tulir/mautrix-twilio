@@ -110,7 +110,10 @@ class Puppet(BasePuppet):
 
     @classmethod
     def get_twid_from_mxid(cls, mxid: UserID) -> Optional[TwilioUserID]:
-        return cls.mxid_template.parse(mxid)
+        parsed = cls.mxid_template.parse(mxid)
+        if parsed:
+            return TwilioUserID(cls.twid_template.format_full(parsed))
+        return None
 
     @classmethod
     def get_mxid_from_twid(cls, twid: TwilioUserID) -> UserID:

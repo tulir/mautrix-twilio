@@ -148,7 +148,7 @@ class Portal(BasePortal):
             ext = mimetypes.guess_extension(mime)
             content = MediaMessageEventContent(body=f"{message.id}{ext}", msgtype=msgtype, url=mxc,
                                                info=FileInfo(size=len(data), mimetype=mime))
-            await self.main_intent.send_message(self.mxid, content)
+            mxid = await self.main_intent.send_message(self.mxid, content)
 
         if message.body:
             mxid = await self.main_intent.send_text(self.mxid, message.body)
@@ -170,6 +170,8 @@ class Portal(BasePortal):
                 await self.main_intent.mark_read(self.mxid, msg.mxid)
             elif status.status == TwilioMessageStatus.UNDELIVERED:
                 await self.az.intent.react(self.mxid, msg.mxid, "\u274c")
+            elif status.status == TwilioMessageStatus.FAILED:
+                await self.az.intent.react(self.mxid, msg.mxid, "\u274c")
 
     async def handle_matrix_message(self, sender: 'u.User', message: MessageEventContent,
                                     event_id: EventID) -> None:
@@ -178,7 +180,8 @@ class Portal(BasePortal):
                 resp = await self.twc.send_message(self.twid, message.body)
             elif message.msgtype in (MessageType.AUDIO, MessageType.VIDEO, MessageType.IMAGE,
                                      MessageType.FILE):
-                url = self.main_intent.api.get_download_url(message.url)
+                url = (f"{config['homeserver.public_address']}/_matrix/media/r0/download/"
+                       f"{message.url[6:]}")
                 resp = await self.twc.send_message(self.twid, media=url)
             else:
                 self.log.debug(f"Ignoring unknown message {message}")
