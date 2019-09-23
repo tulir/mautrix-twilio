@@ -13,28 +13,36 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-from typing import Dict, Optional, TYPE_CHECKING
+from typing import Dict, Optional, List, Any, TYPE_CHECKING
+from string import Template
+from html import escape
 import mimetypes
 import asyncio
 
-from mautrix.types import (RoomID, StrippedStateEvent, MediaMessageEventContent, MessageType,
-                           FileInfo, MessageEventContent, EventID, EventType)
+from mautrix.types import (RoomID, UserID, EventID, EventType, StrippedStateEvent, MessageType,
+                           MessageEventContent, TextMessageEventContent, Format, FileInfo,
+                           MediaMessageEventContent)
 from mautrix.bridge import BasePortal
 from mautrix.appservice import IntentAPI
 
-from .config import Config
 from .db import Portal as DBPortal, Message as DBMessage
-from .twilio import (TwilioUserID, TwilioClient, TwilioMessageEvent, TwilioStatusEvent,
-                     TwilioMessageStatus, TwilioMessageID)
+from .twilio import (TwilioUserID, TwilioMessageID, TwilioClient, TwilioMessageEvent,
+                     TwilioStatusEvent, TwilioMessageStatus)
+from .formatter import whatsapp_to_matrix, matrix_to_whatsapp
 from . import puppet as p, user as u
 
 if TYPE_CHECKING:
     from .context import Context
 
-config: Config
-
 
 class Portal(BasePortal):
+    homeserver_address: str
+    message_template: Template
+    bridge_notices: bool
+    federate_rooms: bool
+    invite_users: List[UserID]
+    initial_state: Dict[str, Dict[str, Any]]
+
     twc: TwilioClient
 
     by_mxid: Dict[RoomID, 'Portal'] = {}
@@ -107,18 +115,18 @@ class Portal(BasePortal):
         puppet = p.Puppet.get_by_twid(self.twid)
         await puppet.update_displayname()
         creation_content = {
-            "m.federate": config["bridge.federate_rooms"]
+            "m.federate": self.federate_rooms
         }
         initial_state = {EventType.find(event_type): StrippedStateEvent.deserialize({
             "type": event_type,
             "state_key": "",
             "content": content
-        }) for event_type, content in config["bridge.initial_state"].items()}
+        }) for event_type, content in self.initial_state.items()}
         if EventType.ROOM_POWER_LEVELS in initial_state:
             initial_state[EventType.ROOM_POWER_LEVELS].content.users[self.az.bot_mxid] = 100
         self.mxid = await self.az.intent.create_room(name=puppet.displayname,
                                                      invitees=[self.main_intent.mxid,
-                                                               *config["bridge.invite_users"]],
+                                                               *self.invite_users],
                                                      creation_content=creation_content,
                                                      initial_state=list(initial_state.values()))
         if not self.mxid:
@@ -152,7 +160,12 @@ class Portal(BasePortal):
             mxid = await self.main_intent.send_message(self.mxid, content)
 
         if message.body:
-            mxid = await self.main_intent.send_text(self.mxid, message.body)
+            html, text = whatsapp_to_matrix(message.body)
+            content = TextMessageEventContent(msgtype=MessageType.TEXT, body=text)
+            if html is not None:
+                content.format = Format.HTML
+                content.formatted_body = html
+            mxid = await self.main_intent.send_message(self.mxid, content)
 
         if not mxid:
             mxid = await self.main_intent.send_notice(self.mxid, "Message with unknown content")
@@ -177,12 +190,19 @@ class Portal(BasePortal):
     async def handle_matrix_message(self, sender: 'u.User', message: MessageEventContent,
                                     event_id: EventID) -> None:
         async with self._send_lock:
-            if message.msgtype == MessageType.TEXT:
-                resp = await self.twc.send_message(self.twid, message.body)
+            if message.msgtype == MessageType.TEXT or (message.msgtype == MessageType.NOTICE
+                                                       and self.bridge_notices):
+                localpart, _ = self.az.intent.parse_user_id(sender.mxid)
+                html = (message.formatted_body if message.format == Format.HTML
+                        else escape(message.body))
+                html = self.message_template.safe_substitute(
+                    message=html, mxid=sender.mxid, localpart=localpart,
+                    displayname=await self.az.intent.get_room_displayname(self.mxid, sender.mxid))
+                text = matrix_to_whatsapp(html)
+                resp = await self.twc.send_message(self.twid, text)
             elif message.msgtype in (MessageType.AUDIO, MessageType.VIDEO, MessageType.IMAGE,
                                      MessageType.FILE):
-                url = (f"{config['homeserver.public_address']}/_matrix/media/r0/download/"
-                       f"{message.url[6:]}")
+                url = f"{self.homeserver_address}/_matrix/media/r0/download/{message.url[6:]}"
                 resp = await self.twc.send_message(self.twid, media=url)
             else:
                 self.log.debug(f"Ignoring unknown message {message}")
@@ -224,6 +244,11 @@ class Portal(BasePortal):
 
 
 def init(context: 'Context') -> None:
-    global config
     Portal.az, config, Portal.loop = context.core
     Portal.twc = context.twc
+    Portal.homeserver_address = config["homeserver.public_address"]
+    Portal.message_template = Template(config["bridge.message_template"])
+    Portal.bridge_notices = config["bridge.bridge_notices"]
+    Portal.federate_rooms = config["bridge.federate_rooms"]
+    Portal.invite_users = config["bridge.invite_users"]
+    Portal.initial_state = config["bridge.initial_state"]

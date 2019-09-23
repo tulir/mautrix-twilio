@@ -58,10 +58,12 @@ bridge:
 
     # The prefix for commands. Only required in non-management rooms.
     command_prefix: "!tw"
-
     # List of users to always invite to newly created portal rooms.
     invite_users: []
-
+    # Template for text messages.
+    message_template: "$message<br/>- $displayname"
+    # Whether or not Matrix m.notice-type messages should be bridged.
+    bridge_notices: false
     # Whether or not created rooms should have federation enabled.
     # If false, created portal rooms will never be federated.
     federate_rooms: true
