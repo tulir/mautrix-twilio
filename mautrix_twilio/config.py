@@ -32,6 +32,8 @@ class Config(BaseBridgeConfig):
         copy("bridge.username_template")
         copy("bridge.command_prefix")
 
+        copy("bridge.invite_users")
+
         copy("bridge.federate_rooms")
         copy("bridge.initial_state")
 

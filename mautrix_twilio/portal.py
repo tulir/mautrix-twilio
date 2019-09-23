@@ -118,7 +118,7 @@ class Portal(BasePortal):
             initial_state[EventType.ROOM_POWER_LEVELS].content.users[self.az.bot_mxid] = 100
         self.mxid = await self.az.intent.create_room(name=puppet.displayname,
                                                      invitees=[self.main_intent.mxid,
-                                                               "@tulir:pc.mau.dev"],
+                                                               *config["bridge.invite_users"]],
                                                      creation_content=creation_content,
                                                      initial_state=list(initial_state.values()))
         if not self.mxid:
