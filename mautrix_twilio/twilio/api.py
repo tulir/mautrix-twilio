@@ -24,7 +24,7 @@ from ..config import Config
 
 
 class TwilioClient:
-    log: logging.Logger = logging.getLogger("mau.twilio.api")
+    log: logging.Logger = logging.getLogger("twilio.out")
     base_url: str = "https://api.twilio.com/2010-04-01"
     http: ClientSession
     sender_id: TwilioUserID

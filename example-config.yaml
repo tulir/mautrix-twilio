@@ -110,7 +110,7 @@ logging:
     version: 1
     formatters:
         colored:
-            (): mautrix.util.color_log.ColorFormatter
+            (): mautrix_twilio.util.ColorFormatter
             format: "[%(asctime)s] [%(levelname)s@%(name)s] %(message)s"
         normal:
             format: "[%(asctime)s] [%(levelname)s@%(name)s] %(message)s"
@@ -127,7 +127,7 @@ logging:
     loggers:
         mau:
             level: DEBUG
-        fbchat:
+        twilio:
             level: DEBUG
         aiohttp:
             level: INFO

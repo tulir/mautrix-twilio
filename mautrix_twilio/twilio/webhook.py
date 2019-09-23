@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 class TwilioHandler:
-    log: logging.Logger = logging.getLogger("mau.twilio")
+    log: logging.Logger = logging.getLogger("twilio.in")
     app: web.Application
     validator: RequestValidator
 
