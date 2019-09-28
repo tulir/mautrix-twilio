@@ -21,7 +21,7 @@ import asyncio
 
 from mautrix.types import (RoomID, UserID, EventID, EventType, StrippedStateEvent, MessageType,
                            MessageEventContent, TextMessageEventContent, Format, FileInfo,
-                           MediaMessageEventContent)
+                           MediaMessageEventContent, PowerLevelStateEventContent)
 from mautrix.bridge import BasePortal
 from mautrix.appservice import IntentAPI
 
@@ -122,13 +122,19 @@ class Portal(BasePortal):
             "state_key": "",
             "content": content
         }) for event_type, content in self.initial_state.items()}
-        if EventType.ROOM_POWER_LEVELS in initial_state:
-            initial_state[EventType.ROOM_POWER_LEVELS].content.users[self.az.bot_mxid] = 100
-        self.mxid = await self.az.intent.create_room(name=puppet.displayname,
-                                                     invitees=[self.main_intent.mxid,
-                                                               *self.invite_users],
-                                                     creation_content=creation_content,
-                                                     initial_state=list(initial_state.values()))
+        if EventType.ROOM_POWER_LEVELS not in initial_state:
+            initial_state[EventType.ROOM_POWER_LEVELS] = StrippedStateEvent(
+                type=EventType.ROOM_POWER_LEVELS, content=PowerLevelStateEventContent())
+        plc = initial_state[EventType.ROOM_POWER_LEVELS].content
+        plc.users[self.az.bot_mxid] = 100
+        plc.users[self.main_intent] = 100
+        for user_id in self.invite_users:
+            plc.users.setdefault(user_id, 100)
+        self.mxid = await self.main_intent.create_room(name=puppet.displayname,
+                                                       invitees=[self.az.bot_mxid,
+                                                                 *self.invite_users],
+                                                       creation_content=creation_content,
+                                                       initial_state=list(initial_state.values()))
         if not self.mxid:
             raise Exception("Failed to create room: no mxid received")
         self.save()
