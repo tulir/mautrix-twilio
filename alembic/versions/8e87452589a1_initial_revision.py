@@ -47,7 +47,7 @@ def upgrade():
     )
     op.create_table('puppet',
     sa.Column('twid', sa.String(length=127), nullable=False),
-    sa.Column('matrix_registered', sa.Boolean(), server_default=sa.text('0'), nullable=False),
+    sa.Column('matrix_registered', sa.Boolean(), server_default=sa.false(), nullable=False),
     sa.PrimaryKeyConstraint('twid')
     )
     # ### end Alembic commands ###
