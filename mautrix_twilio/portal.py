@@ -127,7 +127,7 @@ class Portal(BasePortal):
                 type=EventType.ROOM_POWER_LEVELS, content=PowerLevelStateEventContent())
         plc = initial_state[EventType.ROOM_POWER_LEVELS].content
         plc.users[self.az.bot_mxid] = 100
-        plc.users[self.main_intent] = 100
+        plc.users[self.main_intent.mxid] = 100
         for user_id in self.invite_users:
             plc.users.setdefault(user_id, 100)
         self.mxid = await self.main_intent.create_room(name=puppet.displayname,
