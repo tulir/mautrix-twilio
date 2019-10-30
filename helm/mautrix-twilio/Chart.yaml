@@ -1,0 +1,15 @@
+apiVersion: v1
+name: mautrix-twilio
+version: 0.1.0
+appVersion: "0.1.0"
+description: A Matrix-Twilio relaybot bridge.
+keywords:
+  - matrix
+  - bridge
+  - twilio
+  - whatsapp
+maintainers:
+  - name: Tulir Asokan
+    email: tulir@maunium.net
+sources:
+  - https://github.com/tulir/mautrix-twilio
