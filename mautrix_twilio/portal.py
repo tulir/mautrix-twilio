@@ -133,6 +133,7 @@ class Portal(BasePortal):
         self.mxid = await self.main_intent.create_room(name=puppet.displayname,
                                                        invitees=[self.az.bot_mxid,
                                                                  *self.invite_users],
+                                                       is_direct=True,
                                                        creation_content=creation_content,
                                                        initial_state=list(initial_state.values()))
         if not self.mxid:
